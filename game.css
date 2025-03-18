@@ -23,6 +23,56 @@ canvas {
     animation: scoreAnimation 1s infinite alternate;
 }
 
+#scoreboard {
+    color: white;
+    text-align: center;
+    font-size: 18px;
+    font-family: 'Press Start 2P', cursive; /* Retro font */
+    margin-top: 10px;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+#scoreList {
+    list-style-type: none;
+    padding: 0;
+}
+
+#scoreList li {
+    margin: 5px 0;
+}
+
+#gameOverScreen {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#playerName {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+#saveScoreButton {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: white;
+    background-color: black;
+    border: 2px solid white;
+    cursor: pointer;
+    animation: buttonAnimation 1s infinite alternate;
+}
+
+#saveScoreButton:hover {
+    background-color: darkblue;
+}
+
 #restartButton {
     display: block;
     margin: 20px auto;

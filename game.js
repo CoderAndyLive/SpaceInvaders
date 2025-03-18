@@ -152,6 +152,12 @@ class Game {
         this.restartButton = document.getElementById("restartButton");
         this.restartButton.style.display = "none";
         this.restartButton.addEventListener("click", () => this.restart());
+        this.gameOverScreen = document.getElementById("gameOverScreen");
+        this.playerNameInput = document.getElementById("playerName");
+        this.saveScoreButton = document.getElementById("saveScoreButton");
+        this.saveScoreButton.addEventListener("click", () => this.saveScore());
+        this.scoreList = document.getElementById("scoreList");
+        this.loadScores();
     }
 
     createInvaders() {
@@ -188,6 +194,7 @@ class Game {
             this.ctx.textAlign = "center";
             this.ctx.fillText("Game Over", this.canvas.width / 2, this.canvas.height / 2);
             this.restartButton.style.display = "block";
+            this.gameOverScreen.style.display = "block";
             return;
         }
 
@@ -295,7 +302,31 @@ class Game {
         this.createInvaders();
         this.createAsteroids();
         this.restartButton.style.display = "none";
+        this.gameOverScreen.style.display = "none";
         this.update();
+    }
+
+    saveScore() {
+        const playerName = this.playerNameInput.value;
+        if (playerName) {
+            const scores = JSON.parse(localStorage.getItem('scores')) || [];
+            scores.push({ name: playerName, score: this.score });
+            scores.sort((a, b) => b.score - a.score);
+            localStorage.setItem('scores', JSON.stringify(scores));
+            this.loadScores();
+            this.playerNameInput.value = '';
+            this.gameOverScreen.style.display = "none"; // Hide game over screen after saving score
+        }
+    }
+
+    loadScores() {
+        const scores = JSON.parse(localStorage.getItem('scores')) || [];
+        this.scoreList.innerHTML = '';
+        scores.forEach(score => {
+            const li = document.createElement('li');
+            li.textContent = `${score.name}: ${score.score}`;
+            this.scoreList.appendChild(li);
+        });
     }
 }
 
