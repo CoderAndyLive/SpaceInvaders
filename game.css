@@ -115,23 +115,10 @@ canvas {
     flex-direction: column;
 }
 
-@keyframes backgroundAnimation {
-    0% { background-color: black; }
-    50% { background-color: darkblue; }
-    100% { background-color: black; }
-}
+
 
 @keyframes canvasAnimation {
     0% { transform: scale(1); }
     100% { transform: scale(1.05); }
 }
 
-@keyframes scoreAnimation {
-    0% { transform: scale(1); color: white; }
-    100% { transform: scale(1.2); color: yellow; }
-}
-
-@keyframes buttonAnimation {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.1); }
-}
