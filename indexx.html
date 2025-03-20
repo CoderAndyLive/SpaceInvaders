@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <canvas id="gameCanvas" width="480" height="320"></canvas>
+    <canvas id="gameCanvas" width="800" height="600"></canvas> <!-- Increased size -->
     <div id="score">Score: 0</div>
     <div id="scoreboard">
         <h2>Scoreboard</h2>
@@ -19,6 +19,11 @@
         <button id="saveScoreButton">Save Score</button>
     </div>
     <button id="restartButton">Restart</button>
+    <div id="muteButtons">
+        <button id="muteMusicButton" class="retro-button">Mute Music</button> <!-- Add mute music button -->
+        <button id="muteSoundEffectsButton" class="retro-button">Mute Sound Effects</button> <!-- Add mute sound effects button -->
+    </div>
+    <audio id="backgroundMusic" src="spaceinvaders1.mpeg" loop></audio> <!-- Add background music -->
     <script src="game.js"></script>
 </body>
 

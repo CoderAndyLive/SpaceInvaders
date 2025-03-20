@@ -90,6 +90,31 @@ canvas {
     background-color: darkblue;
 }
 
+.retro-button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 16px;
+    color: white;
+    background-color: black;
+    border: 2px solid white;
+    cursor: pointer;
+    animation: buttonAnimation 1s infinite alternate;
+}
+
+.retro-button:hover {
+    background-color: darkblue;
+}
+
+#muteButtons {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
 @keyframes backgroundAnimation {
     0% { background-color: black; }
     50% { background-color: darkblue; }

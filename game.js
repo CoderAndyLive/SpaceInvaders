@@ -64,10 +64,10 @@ class Player extends SpaceShip {
         this.speed = 5;
         this.image = new Image();
         this.image.src = 'Ship.png'; 
-        this.lives = 3; // Add lives property
-        this.shootSound = new Audio('shoot.wav'); // Add shoot sound
-        this.canShoot = true; // Add canShoot property
-        this.shootCooldown = 400; // Cooldown period in milliseconds
+        this.lives = 3; 
+        this.shootSound = new Audio('shoot.wav'); 
+        this.canShoot = true; 
+        this.shootCooldown = 400; 
     }
 
     draw(ctx) {
@@ -115,10 +115,14 @@ class Invader extends SpaceShip {
 class Asteroid {
     constructor(x, y, parts) {
         this.parts = parts.map(part => new GameObject(x + part.x, y + part.y, part.width, part.height, part.color));
+        this.hits = 0; // Add hits property
     }
 
     draw(ctx) {
-        this.parts.forEach(part => part.draw(ctx));
+        this.parts.forEach(part => {
+            part.color = this.getColor(); // Update color based on hits
+            part.draw(ctx);
+        });
     }
 
     collidesWith(obj) {
@@ -126,7 +130,16 @@ class Asteroid {
     }
 
     removeOnCollide(obj) {
-        this.parts = this.parts.filter(part => !part.collidesWith(obj));
+        this.hits++;
+        if (this.hits >= 9) { // Require 9 hits to destroy
+            this.parts = this.parts.filter(part => !part.collidesWith(obj));
+        }
+    }
+
+    getColor() {
+        if (this.hits < 3) return "gray";
+        if (this.hits < 6) return "darkgray";
+        return "black";
     }
 }
 
@@ -139,14 +152,15 @@ class Game {
         this.invaders = [];
         this.asteroids = [];
         this.score = 0;
+        this.level = 1; // Add level property
         this.invaderSpeed = 0.2;
         this.invaderDirection = 1;
         this.gameOver = false;
         this.enemyFireRate = 100;
         this.enemyFireTimer = 0;
         this.asteroidsParts = 4;
-        this.noOfAsteroids = 2; 
-        this.asteroidsSpace = 200; 
+        this.noOfAsteroids = 10; // Adjusted number of asteroids
+        this.asteroidsSpace = 70; // Adjusted space between asteroids
         this.createInvaders();
         this.createAsteroids();
         this.restartButton = document.getElementById("restartButton");
@@ -158,6 +172,13 @@ class Game {
         this.saveScoreButton.addEventListener("click", () => this.saveScore());
         this.scoreList = document.getElementById("scoreList");
         this.loadScores();
+        this.backgroundMusic = document.getElementById("backgroundMusic"); // Add background music
+        this.invaderKilledSound = new Audio('invaderkilled.wav'); // Add invader killed sound
+        this.explosionSound = new Audio('explosion.wav'); // Add explosion sound
+        this.muteMusicButton = document.getElementById("muteMusicButton"); // Add mute music button
+        this.muteSoundEffectsButton = document.getElementById("muteSoundEffectsButton"); // Add mute sound effects button
+        this.muteMusicButton.addEventListener("click", () => this.toggleMuteMusic());
+        this.muteSoundEffectsButton.addEventListener("click", () => this.toggleMuteSoundEffects());
     }
 
     createInvaders() {
@@ -175,8 +196,9 @@ class Game {
             { x: 0, y: 20, width: 20, height: 20, color: "gray" },
             { x: 20, y: 20, width: 20, height: 20, color: "gray" }
         ];
+        const yPosition = this.canvas.height - 100; // Adjusted position for larger playfield
         for (let i = 0; i < this.noOfAsteroids; i++) {
-            this.asteroids.push(new Asteroid(i * this.asteroidsSpace + 100, 100, parts));
+            this.asteroids.push(new Asteroid(i * this.asteroidsSpace + 50, yPosition, parts));
         }
     }
 
@@ -189,6 +211,7 @@ class Game {
 
     update() {
         if (this.gameOver) {
+            this.explosionSound.play(); // Play explosion sound
             this.ctx.font = "30px 'Press Start 2P', cursive"; // Retro font
             this.ctx.fillStyle = "white";
             this.ctx.textAlign = "center";
@@ -202,7 +225,7 @@ class Game {
         this.moveInvaders();
         this.checkCollisions();
         this.enemyFire();
-        this.scoreDisplay.textContent = "Score: " + this.score + " Lives: " + this.player.lives; // Display lives
+        this.scoreDisplay.textContent = "Score: " + this.score + " Lives: " + this.player.lives + " Level: " + this.level; // Display lives and level
         requestAnimationFrame(() => this.update());
     }
 
@@ -224,6 +247,7 @@ class Game {
                     this.player.bullets.splice(bulletIndex, 1);
                     this.invaders.splice(invaderIndex, 1);
                     this.score += 10;
+                    this.invaderKilledSound.play(); // Play invader killed sound
                 }
             });
 
@@ -233,8 +257,6 @@ class Game {
                     this.player.bullets.splice(bulletIndex, 1);
                     if (asteroid.parts.length === 0) {
                         this.asteroids.splice(asteroidIndex, 1);
-                        this.createAsteroids(); 
-                        
                     }
                 }
             });
@@ -244,15 +266,25 @@ class Game {
             invader.bullets.forEach((bullet, bulletIndex) => {
                 if (bullet.collidesWith(this.player)) {
                     invader.bullets.splice(bulletIndex, 1);
-                    this.player.lives -= 1; // Decrease lives
+                    this.player.lives -= 1; 
                     if (this.player.lives <= 0) {
                         this.gameOver = true;
                     }
                 }
+
+                this.asteroids.forEach((asteroid, asteroidIndex) => {
+                    if (asteroid.collidesWith(bullet)) {
+                        asteroid.removeOnCollide(bullet);
+                        invader.bullets.splice(bulletIndex, 1);
+                        if (asteroid.parts.length === 0) {
+                            this.asteroids.splice(asteroidIndex, 1);
+                        }
+                    }
+                });
             });
 
             if (invader.y + invader.height >= this.player.y) {
-                this.player.lives -= 1; // Decrease lives
+                this.player.lives -= 1; 
                 if (this.player.lives <= 0) {
                     this.gameOver = true;
                 }
@@ -260,7 +292,7 @@ class Game {
         });
 
         if (this.invaders.length === 0 && !this.gameOver) {
-            this.createInvaders();
+            this.levelUp();
         }
     }
 
@@ -286,7 +318,12 @@ class Game {
     }
 
     start() {
-        document.addEventListener("keydown", (event) => this.handleKeydown(event));
+        document.addEventListener("keydown", (event) => {
+            if (!this.backgroundMusic.playing) {
+                this.backgroundMusic.play(); // Play background music
+            }
+            this.handleKeydown(event);
+        });
         this.update();
     }
 
@@ -295,7 +332,8 @@ class Game {
         this.invaders = [];
         this.asteroids = [];
         this.score = 0;
-        this.invaderSpeed = 0.2; // Reset speed
+        this.level = 1; // Reset level
+        this.invaderSpeed = 0.2; 
         this.invaderDirection = 1;
         this.gameOver = false;
         this.enemyFireTimer = 0;
@@ -304,6 +342,24 @@ class Game {
         this.restartButton.style.display = "none";
         this.gameOverScreen.style.display = "none";
         this.update();
+    }
+
+    levelUp() {
+        this.level++;
+        this.invaderSpeed *= 1.2; // Increase invader speed by 20%
+        this.enemyFireRate *= 0.9; // Increase enemy fire rate by 10%
+        this.displayLevelUp(); // Display level up message
+        this.createInvaders();
+    }
+
+    displayLevelUp() {
+        this.ctx.font = "30px 'Press Start 2P', cursive"; // Retro font
+        this.ctx.fillStyle = "white";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("Level " + this.level, this.canvas.width / 2, this.canvas.height / 2);
+        setTimeout(() => {
+            this.ctx.clearRect(this.canvas.width / 2 - 100, this.canvas.height / 2 - 20, 200, 40);
+        }, 2000); // Display for 2 seconds
     }
 
     saveScore() {
@@ -315,7 +371,7 @@ class Game {
             localStorage.setItem('scores', JSON.stringify(scores));
             this.loadScores();
             this.playerNameInput.value = '';
-            this.gameOverScreen.style.display = "none"; // Hide game over screen after saving score
+            this.gameOverScreen.style.display = "none";
         }
     }
 
@@ -327,6 +383,17 @@ class Game {
             li.textContent = `${score.name}: ${score.score}`;
             this.scoreList.appendChild(li);
         });
+    }
+
+    toggleMuteMusic() {
+        this.backgroundMusic.muted = !this.backgroundMusic.muted;
+        this.muteMusicButton.textContent = this.backgroundMusic.muted ? "Unmute Music" : "Mute Music";
+    }
+
+    toggleMuteSoundEffects() {
+        const soundEffects = [this.player.shootSound, this.invaderKilledSound, this.explosionSound];
+        soundEffects.forEach(sound => sound.muted = !sound.muted);
+        this.muteSoundEffectsButton.textContent = soundEffects[0].muted ? "Unmute Sound Effects" : "Mute Sound Effects";
     }
 }
 
